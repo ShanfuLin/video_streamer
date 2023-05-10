@@ -1,0 +1,17 @@
+{
+  "name": "video_player_release",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/ws": "^8.5.4"
+  },
+  "dependencies": {
+    "ws": "^8.13.0"
+  }
+}
