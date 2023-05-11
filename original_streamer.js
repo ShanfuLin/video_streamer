@@ -1,7 +1,7 @@
 const WebSocket = require("ws");
 const { spawn } = require("child_process");
-const rtspUrl = "rtsp://localhost:8554/mystream";
-// const rtspUrl = "rtsp://wenyen.lc4i.club:8554/meeting";
+// const rtspUrl = "rtsp://localhost:8554/mystream";
+const rtspUrl = "rtsp://wenyen.lc4i.club:8554/meeting";
 // const rtspUrl = "rtsp://justinn.lc4i.club:8554/ivh-pudo-2";
 const fs = require("fs");
 const outputFile = fs.createWriteStream("ffmpeg_output.bin");
@@ -15,17 +15,12 @@ var buffered_media_segment_to_send = [];
 var segment_end_index = { box_type: "nil", end_index: 0 };
 var next_segment_counter = 0;
 var processing_counter_queue = [];
-var moof_counter = 0;
-var mdat_counter = 0;
 var checker = "";
-var codec_info = "";
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
   if (initialization_segment_ready_flag == true) {
     wss.clients.forEach((client) => {
-      console.log(codec_info);
-      client.send(codec_info);
       client.send(new Uint8Array(initialization_segment_to_send).buffer);
       console.log("Sent initialization segment to clients");
     });
@@ -104,7 +99,6 @@ ffmpeg.stdout.on("data", (chunk) => {
         let box_size_string = checker.slice(-16, -8);
         let num_bytes = hexToDec(box_size_string);
         next_segment_counter += num_bytes;
-        moof_counter++;
       } else if (checker.slice(-8) === "6D646174") {
         let box_size_string = checker.slice(-16, -8);
         let num_bytes = hexToDec(box_size_string);
@@ -115,7 +109,6 @@ ffmpeg.stdout.on("data", (chunk) => {
         };
         processing_counter_queue.push(segment_end_index);
         next_segment_counter = 0;
-        mdat_counter++;
       }
       checker = checker.slice(2);
     }

@@ -7,29 +7,29 @@ import { prep_fytp_moov } from "./prep_fytp_moov";
 import { prep_moof_mdat } from "./prep_moof_mdat";
 
 const myVideoStreamerInstance = new videoStreamer_Instance(
-    "rtsp://localhost:8554/mystream",
+    "rtsp://justinn.lc4i.club:8554/ivh-pudo-2",
     4001
 );
-const outputFile: fs.WriteStream = fs.createWriteStream("ffmpeg_output.bin");
-const wss: WebSocket.Server = myVideoStreamerInstance.get_wss();
+// const outputFile: fs.WriteStream = fs.createWriteStream("ffmpeg_output.bin");
+const wss: WebSocket.Server = myVideoStreamerInstance.wss;
 
 wss.on("connection", (ws: WebSocket) => {
     console.log("Client connected");
-    if (myVideoStreamerInstance.get_initialization_segment_ready_flag()) {
+    if (myVideoStreamerInstance.initialization_segment_ready_flag) {
         wss.clients.forEach((client: WebSocket) => {
             client.send(
                 new Uint8Array(
-                    myVideoStreamerInstance.get_initialization_segment_to_send()
+                    myVideoStreamerInstance.initialization_segment_to_send
                 ).buffer
             );
             console.log("Sent initialization segment to clients");
         });
     }
-    if (myVideoStreamerInstance.get_buffered_media_segment_ready_flag()) {
+    if (myVideoStreamerInstance.buffered_media_segment_ready_flag) {
         wss.clients.forEach((client: WebSocket) => {
             client.send(
                 new Uint8Array(
-                    myVideoStreamerInstance.get_buffered_media_segment_to_send()
+                    myVideoStreamerInstance.buffered_media_segment_to_send
                 ).buffer
             );
         });
@@ -48,7 +48,7 @@ const ffmpeg = spawn("ffmpeg", [
     "-rtsp_transport",
     "tcp",
     "-i",
-    myVideoStreamerInstance.get_rtspUrl(),
+    myVideoStreamerInstance.rtspUrl,
     "-g",
     "10",
     "-bufsize",
@@ -71,27 +71,29 @@ const ffmpeg = spawn("ffmpeg", [
 ]);
 
 ffmpeg.stdout.on("data", (chunk: Buffer) => {
-    outputFile.write(chunk);
+    // outputFile.write(chunk);
 
     //This is where the parsing and calculating of the length of each box will take place.
     parse_video_chunk_info(myVideoStreamerInstance, chunk);
 
     //This is where the data will be sliced, grouped into their respective segments and sent to the connected clients.
-    if (myVideoStreamerInstance.get_processing_counter_queue().length > 0) {
+    if (myVideoStreamerInstance.processing_counter_queue.length > 0) {
         let jobs_removal_counter = 0;
         myVideoStreamerInstance
-            .get_processing_counter_queue()
+            .processing_counter_queue
             .forEach((job_info) => {
-                
+
                 jobs_removal_counter = prep_fytp_moov(myVideoStreamerInstance, job_info, jobs_removal_counter);
 
                 jobs_removal_counter = prep_moof_mdat(myVideoStreamerInstance, job_info, jobs_removal_counter);
 
                 let processing_counter_queue =
-                    myVideoStreamerInstance.get_processing_counter_queue();
+                    myVideoStreamerInstance.processing_counter_queue;
 
                 processing_counter_queue =
                     processing_counter_queue.slice(jobs_removal_counter);
+
+                myVideoStreamerInstance.processing_counter_queue = processing_counter_queue;
             });
     }
 });

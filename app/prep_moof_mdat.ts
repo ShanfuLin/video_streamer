@@ -10,20 +10,20 @@ function prep_moof_mdat(
   jobs_removal_counter: number
 ) {
   let buf_chunks_string_holder_array: number[] =
-    my_videoStreamer_Instance.get_buf_chunks_string_holder_array();
+    my_videoStreamer_Instance.buf_chunks_string_holder_array;
 
   let buffered_media_segment_to_send: number[] =
-    my_videoStreamer_Instance.get_buffered_media_segment_to_send();
+    my_videoStreamer_Instance.buffered_media_segment_to_send;
 
   let buffered_media_segment_ready_flag: boolean =
-    my_videoStreamer_Instance.get_buffered_media_segment_ready_flag();
+    my_videoStreamer_Instance.buffered_media_segment_ready_flag;
 
-  let wss: WebSocket.Server = my_videoStreamer_Instance.get_wss();
+  let wss: WebSocket.Server = my_videoStreamer_Instance.wss;
 
   let processing_counter_queue: {
     box_type: string;
     end_index: number;
-  }[] = my_videoStreamer_Instance.get_processing_counter_queue();
+  }[] = my_videoStreamer_Instance.processing_counter_queue;
   if (
     job_info.box_type == "moof&mdat" &&
     buf_chunks_string_holder_array.length >= job_info.end_index
@@ -51,14 +51,17 @@ function prep_moof_mdat(
       processing_counter_queue = [];
     }
     jobs_removal_counter = jobs_removal_counter + 1;
-    
+
     if (wss.clients.size >= 1) {
       wss.clients.forEach((client) => {
         client.send(new Uint8Array(buffered_media_segment_to_send).buffer);
       });
     }
   }
-  console.log(jobs_removal_counter);
+  my_videoStreamer_Instance.buf_chunks_string_holder_array = buf_chunks_string_holder_array;
+  my_videoStreamer_Instance.buffered_media_segment_to_send = buffered_media_segment_to_send;
+  my_videoStreamer_Instance.buffered_media_segment_ready_flag = buffered_media_segment_ready_flag;
+  my_videoStreamer_Instance.processing_counter_queue = processing_counter_queue;
   return jobs_removal_counter;
 }
 

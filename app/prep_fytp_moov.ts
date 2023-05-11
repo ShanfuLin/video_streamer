@@ -9,11 +9,11 @@ function prep_fytp_moov(
   jobs_removal_counter: number
 ) {
   let buf_chunks_string_holder_array: number[] =
-    my_videoStreamer_Instance.get_buf_chunks_string_holder_array();
+    my_videoStreamer_Instance.buf_chunks_string_holder_array;
   let initialization_segment_to_send: number[] =
-    my_videoStreamer_Instance.get_initialization_segment_to_send();
+    my_videoStreamer_Instance.initialization_segment_to_send;
   let initialization_segment_ready_flag: boolean =
-    my_videoStreamer_Instance.get_buffered_media_segment_ready_flag();
+    my_videoStreamer_Instance.buffered_media_segment_ready_flag;
 
   if (
     job_info.box_type == "ftyp&moov" &&
@@ -29,7 +29,9 @@ function prep_fytp_moov(
     );
     jobs_removal_counter = jobs_removal_counter + 1;
   }
-  console.log(jobs_removal_counter);
+  my_videoStreamer_Instance.buf_chunks_string_holder_array = buf_chunks_string_holder_array;
+  my_videoStreamer_Instance.initialization_segment_to_send = initialization_segment_to_send;
+  my_videoStreamer_Instance.initialization_segment_ready_flag = initialization_segment_ready_flag;
   return jobs_removal_counter;
 }
 

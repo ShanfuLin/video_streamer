@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prep_moof_mdat = void 0;
 function prep_moof_mdat(my_videoStreamer_Instance, job_info, jobs_removal_counter) {
-    let buf_chunks_string_holder_array = my_videoStreamer_Instance.get_buf_chunks_string_holder_array();
-    let buffered_media_segment_to_send = my_videoStreamer_Instance.get_buffered_media_segment_to_send();
-    let buffered_media_segment_ready_flag = my_videoStreamer_Instance.get_buffered_media_segment_ready_flag();
-    let wss = my_videoStreamer_Instance.get_wss();
-    let processing_counter_queue = my_videoStreamer_Instance.get_processing_counter_queue();
+    let buf_chunks_string_holder_array = my_videoStreamer_Instance.buf_chunks_string_holder_array;
+    let buffered_media_segment_to_send = my_videoStreamer_Instance.buffered_media_segment_to_send;
+    let buffered_media_segment_ready_flag = my_videoStreamer_Instance.buffered_media_segment_ready_flag;
+    let wss = my_videoStreamer_Instance.wss;
+    let processing_counter_queue = my_videoStreamer_Instance.processing_counter_queue;
     if (job_info.box_type == "moof&mdat" &&
         buf_chunks_string_holder_array.length >= job_info.end_index) {
         buffered_media_segment_to_send = buf_chunks_string_holder_array.slice(0, job_info.end_index);
@@ -31,7 +31,10 @@ function prep_moof_mdat(my_videoStreamer_Instance, job_info, jobs_removal_counte
             });
         }
     }
-    console.log(jobs_removal_counter);
+    my_videoStreamer_Instance.buf_chunks_string_holder_array = buf_chunks_string_holder_array;
+    my_videoStreamer_Instance.buffered_media_segment_to_send = buffered_media_segment_to_send;
+    my_videoStreamer_Instance.buffered_media_segment_ready_flag = buffered_media_segment_ready_flag;
+    my_videoStreamer_Instance.processing_counter_queue = processing_counter_queue;
     return jobs_removal_counter;
 }
 exports.prep_moof_mdat = prep_moof_mdat;
