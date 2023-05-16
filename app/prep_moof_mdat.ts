@@ -1,5 +1,6 @@
 import videoStreamer_Instance from "./video_streamer_class";
 import WebSocket from "ws";
+import fs from "fs";
 
 function prep_moof_mdat(
   my_videoStreamer_Instance: videoStreamer_Instance,
@@ -7,7 +8,7 @@ function prep_moof_mdat(
     box_type: string;
     end_index: number;
   },
-  jobs_removal_counter: number
+  jobs_removal_counter: number, writeStream: fs.WriteStream
 ) {
   let buf_chunks_string_holder_array: number[] =
     my_videoStreamer_Instance.buf_chunks_string_holder_array;
@@ -28,6 +29,8 @@ function prep_moof_mdat(
     job_info.box_type == "moof&mdat" &&
     buf_chunks_string_holder_array.length >= job_info.end_index
   ) {
+    writeStream.write("\r\nStart of prep_moof&mdat: \r\n");
+    writeStream.write(Date.now().toString());
     buffered_media_segment_to_send = buf_chunks_string_holder_array.slice(
       0,
       job_info.end_index
@@ -52,9 +55,16 @@ function prep_moof_mdat(
     }
     jobs_removal_counter = jobs_removal_counter + 1;
 
+    writeStream.write("\r\nEnd of prep_moof&mdat: \r\n");
+    writeStream.write(Date.now().toString());
+
     if (wss.clients.size >= 1) {
       wss.clients.forEach((client) => {
+        writeStream.write("\r\nSending to client start: \r\n");
+        writeStream.write(Date.now().toString());
         client.send(new Uint8Array(buffered_media_segment_to_send).buffer);
+        writeStream.write("\r\nSending to client end: \r\n");
+        writeStream.write(Date.now().toString());
       });
     }
   }
